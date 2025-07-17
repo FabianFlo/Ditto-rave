@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ditto Rave</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            font-family: sans-serif;
+            background-color: black;
+        }
+
+        #frame-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: transparent;
+            padding: 30px;
+            box-sizing: border-box;
+            display: none;
+            --border-color: #e15e33;
+        }
+
+        #frame-container::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--border-color, #e15e33);
+            /* sincronizado con JS */
+            border-radius: 30px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        #frame-inner {
+            width: 100%;
+            height: 100%;
+            background-color: #aacfa1;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+        }
+
+        #startBtn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2em;
+            padding: 0.5em 2em;
+            background: purple;
+            border-radius: 30px;
+            color: black;
+            border: none;
+            cursor: pointer;
+            z-index: 100;
+        }
+
+        .ditto {
+            position: absolute;
+            opacity: 0.3;
+            z-index: 2;
+        }
+
+        .center-ditto {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 260px;
+            transform: translate(-50%, -50%) scaleX(1);
+            z-index: 5;
+            animation: flip 2s infinite ease-in-out;
+        }
+
+        @keyframes flip {
+            0% {
+                transform: translate(-50%, -50%) scaleX(1);
+            }
+
+            50% {
+                transform: translate(-50%, -50%) scaleX(-1);
+            }
+
+            100% {
+                transform: translate(-50%, -50%) scaleX(1);
+            }
+        }
+
+        @keyframes move-left-to-right {
+            0% {
+                transform: translateX(-150%);
+            }
+
+            100% {
+                transform: translateX(150vw);
+            }
+        }
+
+        @keyframes move-right-to-left {
+            0% {
+                transform: translateX(150vw) scaleX(-1);
+            }
+
+            100% {
+                transform: translateX(-150%);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Marco visible redondeado -->
+    <div id="frame-container">
+        <div id="frame-inner" class="colorable">
+            <!-- Aquí se insertarán los Ditto -->
+        </div>
+    </div>
+
+    <!-- Botón inicial -->
+    <button id="startBtn">Trust me</button>
+
+    <!-- Audio -->
+    <audio id="raveSound" src="assets/ditto-rave.mp3" loop></audio>
+
+
+    <script>
+        const btn = document.getElementById("startBtn");
+        const frame = document.getElementById("frame-container");
+        const inner = document.getElementById("frame-inner");
+        const audio = document.getElementById("raveSound");
+
+        const bgColors = ["#aacfa1", "#f2eecb", "#b9e4e3", "#ffe7da", "#f3b7c3"];
+        const borderColors = ["#e15e33", "#bd3d64", "#2b84a1", "#2c8e51", "#e67829"];
+
+        let bgIndex = 0;
+        let borderIndex = 0;
+
+        btn.onclick = () => {
+            btn.style.display = "none";
+            frame.style.display = "block";
+            audio.play().catch(err => console.warn("No se pudo reproducir el audio:", err));
+
+            // Cambiar fondo (interior)
+            setInterval(() => {
+                const bg = bgColors[bgIndex % bgColors.length];
+                document.body.style.backgroundColor = bg;
+                inner.style.backgroundColor = bg;
+                bgIndex++;
+            }, 2000);
+
+            // Cambiar marco (exterior) sincronizado con ::after usando CSS variable
+            setInterval(() => {
+                const color = borderColors[borderIndex % borderColors.length];
+                frame.style.setProperty('--border-color', color);
+                borderIndex++;
+            }, 2000);
+
+            // Ditto central
+            const centerDitto = document.createElement("img");
+            centerDitto.src = "assets/ditto.png";
+            centerDitto.className = "center-ditto";
+            inner.appendChild(centerDitto);
+
+            // Dittos flotantes
+            for (let i = 0; i < 10; i++) {
+                const ditto = document.createElement("img");
+                ditto.src = "assets/ditto.png";
+                ditto.className = "ditto";
+
+                const size = Math.floor(Math.random() * 100) + 100; // 100 a 200 px
+                const duration = (2 + Math.random() * 3).toFixed(2); // 2s a 5s
+                const top = `${Math.random() * 90}vh`;
+                const direction = Math.random() > 0.5 ? "left-to-right" : "right-to-left";
+
+                ditto.style.width = size + "px";
+                ditto.style.top = top;
+                ditto.style.left = direction === "left-to-right" ? "-200px" : "100vw";
+                ditto.style.animation = `move-${direction} ${duration}s linear infinite`;
+
+                inner.appendChild(ditto);
+            }
+        };
+    </script>
+
+</body>
+
+</html>
